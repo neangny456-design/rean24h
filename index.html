@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>English24h - Grammatical QCM Mini App</title>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Great+Vibes&display=swap"
+    rel="stylesheet">
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Telegram WebApp SDK -->
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <!-- Html2Canvas & jsPDF Libraries for Certificate Downloads -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+  <!-- App Container -->
+  <div id="app-container">
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast hidden"></div>
+
+    <!-- 1. WELCOME VIEW -->
+    <div id="view-welcome" class="view-container active">
+      <div class="welcome-header">
+        <div class="logo-container">
+          <div class="logo-glow"></div>
+          <i class="fa-solid fa-graduation-cap logo-icon"></i>
+        </div>
+        <h1 class="brand-title">English24h</h1>
+        <p class="brand-subtitle">Master English Tenses with Interactive QCM Tests</p>
+      </div>
+
+      <div class="welcome-card glass-panel">
+        <h2 class="card-title">Welcome Student</h2>
+        <p class="card-desc">Enter your full name to start practicing. Your scores will be tracked locally.</p>
+
+        <div class="input-group">
+          <label for="student-name-input"><i class="fa-regular fa-user"></i> Full Name</label>
+          <input type="text" id="student-name-input" placeholder="e.g. John Doe" autocomplete="off">
+        </div>
+
+        <button id="btn-start-app" class="btn btn-primary btn-block">
+          <span>Get Started</span> <i class="fa-solid fa-arrow-right"></i>
+        </button>
+      </div>
+
+      <div class="welcome-footer">
+        <button id="btn-goto-login" class="btn-link"><i class="fa-solid fa-user-shield"></i> Admin Portal</button>
+      </div>
+    </div>
+
+    <!-- 2. DASHBOARD VIEW -->
+    <div id="view-dashboard" class="view-container hidden">
+      <div class="dashboard-header">
+        <div class="user-profile">
+          <div class="user-avatar" id="student-avatar-char">U</div>
+          <div class="user-info">
+            <p class="welcome-text">Happy Learning,</p>
+            <h3 class="user-name" id="display-student-name">Student Name</h3>
+          </div>
+        </div>
+        <div class="header-actions">
+          <button id="btn-dashboard-admin" class="btn-icon" title="Admin Panel"><i
+              class="fa-solid fa-gear"></i></button>
+        </div>
+      </div>
+
+      <!-- Quick Stats Card -->
+      <div class="stats-panel glass-panel">
+        <div class="stat-item">
+          <span class="stat-val" id="stat-tests-taken">0</span>
+          <span class="stat-lbl">Tests Done</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+          <span class="stat-val" id="stat-avg-score">0%</span>
+          <span class="stat-lbl">Avg Score</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+          <span class="stat-val" id="stat-streak">0</span>
+          <span class="stat-lbl">Tenses Mastered</span>
+        </div>
+      </div>
+
+      <h2 class="section-title">Select Grammar Tense</h2>
+
+      <div class="tenses-scroll-container" id="dashboard-tenses-container">
+        <!-- Rendered dynamically from PHP database questions via loadDashboardTenses() -->
+      </div>
+
+      <!-- Quick Actions / User Log -->
+      <div class="dashboard-footer-actions" style="display: grid; grid-template-columns: 1fr; gap: 10px;">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+          <button id="btn-change-name" class="btn btn-secondary"><i class="fa-solid fa-user-pen"></i> Change
+            Name</button>
+          <button id="btn-view-my-scores" class="btn btn-secondary"><i class="fa-solid fa-chart-line"></i> Score
+            History</button>
+        </div>
+        <button id="btn-view-my-certs" class="btn btn-primary"
+          style="background: var(--gold-gradient); color: #0b0f19; font-weight: 600; width: 100%; box-shadow: 0 4px 15px rgba(212,175,55,0.25); border: none;">
+          <i class="fa-solid fa-award"></i> My Certificates
+        </button>
+      </div>
+    </div>
+
+    <!-- 3. SCORE HISTORY DIALOG / SCREEN -->
+    <div id="view-history" class="view-container hidden">
+      <div class="section-header">
+        <button id="btn-history-back" class="btn-back"><i class="fa-solid fa-chevron-left"></i></button>
+        <h2>Your Practice History</h2>
+      </div>
+
+      <div class="glass-panel history-table-container">
+        <table class="history-table">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Tense</th>
+              <th>Score</th>
+            </tr>
+          </thead>
+          <tbody id="history-rows">
+            <!-- Dynamic rows -->
+            <tr>
+              <td colspan="3" class="text-center">No tests completed yet.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <button id="btn-clear-history" class="btn btn-danger btn-block" style="margin-top: 15px;">
+        <i class="fa-solid fa-trash-can"></i> Clear History
+      </button>
+    </div>
+
+    <!-- 3.5. CERTIFICATE GALLERY VIEW -->
+    <div id="view-certificates-list" class="view-container hidden">
+      <div class="section-header">
+        <button id="btn-certs-list-back" class="btn-back"><i class="fa-solid fa-chevron-left"></i></button>
+        <h2>My Certificate Gallery</h2>
+      </div>
+
+      <div class="glass-panel" style="padding: 20px;">
+        <p style="font-size: 0.85rem; color: var(--text-secondary); text-align: center; margin-bottom: 20px;">
+          View and download your earned certificates for passing grammatical tenses with a Grade score of 60% or higher.
+        </p>
+
+        <div id="certs-gallery-grid" class="category-buttons" style="grid-template-columns: 1fr; gap: 15px;">
+          <!-- Dynamically populated card templates -->
+        </div>
+      </div>
+    </div>
+
+    <!-- 4. QUIZ VIEW -->
+    <div id="view-quiz" class="view-container hidden">
+      <div class="quiz-header">
+        <button id="btn-quiz-quit" class="btn-back" title="Quit Quiz"><i class="fa-solid fa-xmark"></i></button>
+        <div class="quiz-title-wrapper">
+          <span class="quiz-subtitle-text" id="quiz-category-badge">Present Simple</span>
+          <h3 class="quiz-title-text">Practice Test</h3>
+        </div>
+        <div class="quiz-timer" id="quiz-timer-display">
+          <i class="fa-regular fa-clock"></i> <span id="timer-seconds">30</span>s
+        </div>
+      </div>
+
+      <!-- Progress Area -->
+      <div class="quiz-progress-bar-container">
+        <div class="quiz-progress-fill" id="quiz-progress-fill" style="width: 0%;"></div>
+      </div>
+      <div class="progress-details">
+        <span id="quiz-question-counter">Question 1 of 5</span>
+        <span id="quiz-live-score">Score: 0</span>
+      </div>
+
+      <!-- Question Card -->
+      <div class="question-card glass-panel" id="question-card">
+        <p class="question-text" id="question-text">Question text loaded here?</p>
+      </div>
+
+      <!-- Choices Container -->
+      <div class="choices-container" id="choices-container">
+        <!-- Dynamic Option Buttons -->
+        <button class="btn-choice">Option 1</button>
+        <button class="btn-choice">Option 2</button>
+        <button class="btn-choice">Option 3</button>
+        <button class="btn-choice">Option 4</button>
+      </div>
+
+      <!-- Action Panel -->
+      <div class="quiz-actions">
+        <button id="btn-quiz-next" class="btn btn-primary btn-block hidden">
+          <span>Next Question</span> <i class="fa-solid fa-arrow-right"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- 5. RESULTS VIEW -->
+    <div id="view-results" class="view-container hidden">
+      <div class="results-card glass-panel">
+        <div class="result-badge-container">
+          <div class="result-glow" id="result-glow-circle"></div>
+          <div class="score-circle">
+            <span class="score-percentage" id="result-score-percent">80%</span>
+            <span class="score-fraction" id="result-score-fraction">4/5</span>
+          </div>
+        </div>
+
+        <h2 class="result-heading" id="result-title">Excellent Job!</h2>
+        <p class="result-desc" id="result-feedback">You have successfully mastered this tense test. Keep practicing!</p>
+
+        <div class="result-details-grid">
+          <div class="result-detail-item">
+            <span class="detail-label">Topic</span>
+            <span class="detail-val" id="result-topic">Simple Present</span>
+          </div>
+          <div class="result-detail-item">
+            <span class="detail-label">Total Time</span>
+            <span class="detail-val" id="result-time-taken">0:45</span>
+          </div>
+          <div class="result-detail-item">
+            <span class="detail-label">Status</span>
+            <span class="detail-val" id="result-status">Passed</span>
+          </div>
+        </div>
+
+        <div class="result-action-buttons">
+          <button id="btn-result-certificate" class="btn btn-primary btn-block hidden"
+            style="background: var(--success-gradient); box-shadow: 0 4px 15px rgba(16, 185, 129, 0.35);">
+            <i class="fa-solid fa-award"></i> View Certificate
+          </button>
+          <button id="btn-result-retry" class="btn btn-secondary btn-block">
+            <i class="fa-solid fa-rotate-right"></i> Retake Test
+          </button>
+          <button id="btn-result-dashboard" class="btn btn-secondary btn-block">
+            <i class="fa-solid fa-house"></i> Back to Dashboard
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 5.5. CERTIFICATE VIEW -->
+    <div id="view-certificate" class="view-container hidden">
+      <div class="certificate-wrapper-box">
+        <div id="certificate-container" class="certificate-container">
+
+          <!-- Outer border decoration -->
+          <div class="cert-gold-frame"></div>
+
+          <!-- Corner decorations (SVG) -->
+          <svg class="cert-decor cert-decor-tr" width="300" height="300" viewBox="0 0 300 300" fill="none"
+            xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="gold-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#bf953f" />
+                <stop offset="25%" stop-color="#fcf6ba" />
+                <stop offset="50%" stop-color="#b38728" />
+                <stop offset="75%" stop-color="#fbf5b7" />
+                <stop offset="100%" stop-color="#aa771c" />
+              </linearGradient>
+            </defs>
+            <path d="M80 0 L300 220 L300 230 L70 0 Z" fill="url(#gold-grad)" />
+            <path d="M110 0 L300 190 L300 0 Z" fill="#0c4239" />
+            <path d="M160 0 L300 140 L300 150 L150 0 Z" fill="url(#gold-grad)" />
+            <path d="M190 0 L300 110 L300 0 Z" fill="#082b25" />
+          </svg>
+
+          <svg class="cert-decor cert-decor-bl" width="300" height="300" viewBox="0 0 300 300" fill="none"
+            xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="gold-grad-bl" x1="100%" y1="100%" x2="0%" y2="0%">
+                <stop offset="0%" stop-color="#bf953f" />
+                <stop offset="25%" stop-color="#fcf6ba" />
+                <stop offset="50%" stop-color="#b38728" />
+                <stop offset="75%" stop-color="#fbf5b7" />
+                <stop offset="100%" stop-color="#aa771c" />
+              </linearGradient>
+            </defs>
+            <path d="M220 300 L0 80 L0 70 L230 300 Z" fill="url(#gold-grad-bl)" />
+            <path d="M190 300 L0 110 L0 300 Z" fill="#0c4239" />
+            <path d="M140 300 L0 160 L0 150 L150 300 Z" fill="url(#gold-grad-bl)" />
+            <path d="M110 300 L0 190 L0 300 Z" fill="#082b25" />
+          </svg>
+
+          <!-- Custom Logo Slot (Replaces Gold Seal) -->
+          <div class="cert-logo-container">
+            <img id="cert-logo-img" src="" alt="School Logo" class="hidden">
+          </div>
+
+          <!-- Bottom-Right Gold Flourish (SVG) -->
+          <svg class="cert-flourish-br" width="120" height="120" viewBox="0 0 100 100" fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            style="position: absolute; bottom: 20px; right: 20px; z-index: 5; pointer-events: none;">
+            <path
+              d="M90 90 L90 50 C90 58 82 66 74 68 C66 70 58 64 54 58 C50 52 52 42 60 38 C68 34 76 38 78 46 C80 54 74 62 66 62 C58 62 54 54 56 48"
+              stroke="#c5a059" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+            <path d="M95 95 L95 20 M95 95 L20 95" stroke="#c5a059" stroke-width="1.2" stroke-linecap="round" />
+            <path d="M80 80 Q65 75 55 60 T40 40" stroke="#c5a059" stroke-width="1.2" stroke-linecap="round" />
+            <circle cx="85" cy="85" r="2.5" fill="#c5a059" />
+            <circle cx="90" cy="75" r="2" fill="#c5a059" />
+            <circle cx="75" cy="90" r="2" fill="#c5a059" />
+            <circle cx="65" cy="55" r="1.5" fill="#c5a059" />
+          </svg>
+
+          <div class="cert-content">
+            <h1 class="cert-title">CERTIFICATE</h1>
+            <h3 class="cert-subtitle">OF RECOGNITION</h3>
+
+            <p class="cert-presentation">The following award is given to</p>
+
+            <h2 class="cert-recipient-name" id="cert-student-name">Bartholomew Henderson</h2>
+            <div class="cert-name-underline"></div>
+
+            <p class="cert-description">
+              In appreciation of your exceptional commitment, outstanding academic performance, and successfully
+              mastering the QCM evaluation for <span class="cert-highlight" id="cert-tense-name">Simple Present</span>
+              with a Grade score of <span class="cert-highlight" id="cert-grade">A</span>.
+            </p>
+
+            <p class="cert-date">Awarded this <span id="cert-date-text">13th day of July, 2026</span></p>
+
+            <div class="cert-signature-section">
+              <!-- Default Text Signature -->
+              <div id="cert-default-signature">
+                <div class="signature-line"></div>
+                <h4 class="signature-name">English24h Academy</h4>
+                <p class="signature-title">Mr.NEANG NY Director</p>
+              </div>
+
+              <!-- Custom Signature Image -->
+              <div id="cert-custom-signature-container" class="hidden" style="text-align: center;">
+                <img id="cert-signature-img" src="" alt="Official Signature"
+                  style="max-height: 55px; max-width: 220px; display: block; margin: 0 auto 4px auto;">
+                <div class="signature-line" style="margin-top: 6px;"></div>
+                <p class="signature-title" style="margin-top: 4px;">Authorized Signature</p>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="cert-actions-bar no-print"
+        style="display: flex; flex-direction: column; gap: 10px; align-items: center; width: 100%; max-width: 340px; margin: 0 auto;">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%;">
+          <button id="btn-print-cert" class="btn btn-primary"
+            style="background: var(--primary-gradient); box-shadow: var(--glow-primary); font-size: 0.85rem; padding: 12px 6px;">
+            <i class="fa-solid fa-file-pdf"></i> Save PDF
+          </button>
+          <button id="btn-download-png" class="btn btn-primary"
+            style="background: var(--success-gradient); box-shadow: 0 4px 15px rgba(16, 185, 129, 0.25); font-size: 0.85rem; padding: 12px 6px;">
+            <i class="fa-solid fa-file-image"></i> Save PNG
+          </button>
+        </div>
+        <button id="btn-cert-back" class="btn btn-secondary" style="width: 100%;">
+          <i class="fa-solid fa-arrow-left"></i> Back to Results
+        </button>
+      </div>
+    </div>
+
+    <!-- 6. ADMIN LOGIN VIEW -->
+    <div id="view-admin-login" class="view-container hidden">
+      <div class="section-header">
+        <button id="btn-admin-login-back" class="btn-back"><i class="fa-solid fa-chevron-left"></i></button>
+        <h2>Admin Authentication</h2>
+      </div>
+
+      <div class="glass-panel auth-card">
+        <div class="auth-icon-container">
+          <i class="fa-solid fa-shield-halved"></i>
+        </div>
+        <h3 class="auth-title">Admin Login</h3>
+        <p class="auth-subtitle">Verify your identity to access the management panel.</p>
+
+        <form id="admin-login-form">
+          <div class="input-group">
+            <label for="admin-username"><i class="fa-regular fa-user"></i> Username</label>
+            <input type="text" id="admin-username" placeholder="Username" required>
+          </div>
+          <div class="input-group">
+            <label for="admin-password"><i class="fa-solid fa-lock"></i> Password</label>
+            <input type="password" id="admin-password" placeholder="••••••••" required>
+          </div>
+          <button type="submit" class="btn btn-primary btn-block">
+            <i class="fa-solid fa-right-to-bracket"></i> Login
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- 7. ADMIN DASHBOARD VIEW -->
+    <div id="view-admin-dashboard" class="view-container hidden">
+      <div class="admin-header">
+        <div class="admin-profile">
+          <div class="admin-avatar"><i class="fa-solid fa-user-gear"></i></div>
+          <div class="admin-info">
+            <p class="welcome-text">System Admin</p>
+            <h3 class="user-name">English24h Manager</h3>
+          </div>
+        </div>
+        <div class="header-actions">
+          <button id="btn-admin-logout" class="btn-icon" title="Logout"><i
+              class="fa-solid fa-right-from-bracket"></i></button>
+        </div>
+      </div>
+
+      <!-- Admin Navigation Tabs -->
+      <div class="admin-tabs">
+        <button id="tab-questions" class="tab-btn active"><i class="fa-solid fa-file-signature"></i> QCM Bank</button>
+        <button id="tab-scores" class="tab-btn"><i class="fa-solid fa-chart-simple"></i> Student Logs</button>
+        <button id="tab-customize" class="tab-btn"><i class="fa-solid fa-sliders"></i> Settings &amp; Cert</button>
+      </div>
+
+      <!-- TAB 1: QUESTION MANAGER -->
+      <div id="admin-tab-content-questions" class="tab-content">
+        <!-- Tense Filter & Add Button -->
+        <div class="admin-actions-bar">
+          <div class="select-group">
+            <label for="admin-filter-tense">Filter Tense:</label>
+            <select id="admin-filter-tense">
+              <!-- Dynamically populated -->
+            </select>
+          </div>
+          <button id="btn-show-add-question-modal" class="btn btn-primary btn-sm">
+            <i class="fa-solid fa-plus"></i> Add QCM
+          </button>
+        </div>
+
+        <!-- Question List Container -->
+        <div class="questions-list-wrapper" id="admin-questions-list">
+          <!-- Dynamic cards showing questions -->
+        </div>
+      </div>
+
+      <!-- TAB 2: STUDENT SCORE LOGS -->
+      <div id="admin-tab-content-scores" class="tab-content hidden">
+        <div class="admin-actions-bar">
+          <h4>Student Practice History Logs</h4>
+          <button id="btn-admin-clear-logs" class="btn btn-danger btn-sm">
+            <i class="fa-solid fa-trash-can"></i> Reset Logs
+          </button>
+        </div>
+        <div class="glass-panel score-logs-table-container">
+          <table class="history-table">
+            <thead>
+              <tr>
+                <th>Student</th>
+                <th>Tense</th>
+                <th>Score</th>
+                <th>Date</th>
+              </tr>
+            </thead>
+            <tbody id="admin-score-logs-rows">
+              <!-- Dynamically loaded -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- TAB 3: SETTINGS & CUSTOMIZE -->
+      <div id="admin-tab-content-customize" class="tab-content hidden">
+        <div class="admin-actions-bar">
+          <h4>Global Settings & Certificate Branding</h4>
+        </div>
+
+        <!-- Quiz Configurations (Timer & Score Count) -->
+        <div class="glass-panel" style="padding: 20px; margin-bottom: 20px;">
+          <form id="admin-settings-form">
+            <h5 style="margin-bottom: 12px; font-weight: 700; color: #ffd700; font-size: 0.9rem;"><i
+                class="fa-solid fa-clock-rotate-left"></i> Quiz Settings</h5>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+              <div class="input-group">
+                <label for="settings-quiz-timer">Question Timer (seconds)</label>
+                <input type="number" id="settings-quiz-timer" name="quiz_timer" min="5" max="300" required
+                  style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.15); background: rgba(0,0,0,0.2); color: #fff;">
+              </div>
+              <div class="input-group">
+                <label for="settings-quiz-count">Questions per Quiz</label>
+                <input type="number" id="settings-quiz-count" name="quiz_questions_count" min="1" max="50" required
+                  style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.15); background: rgba(0,0,0,0.2); color: #fff;">
+              </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-sm"
+              style="background: var(--primary-gradient); box-shadow: var(--glow-primary); border: none;">
+              <i class="fa-solid fa-floppy-disk"></i> Save Configuration Settings
+            </button>
+          </form>
+        </div>
+
+        <div class="admin-actions-bar" style="margin-top: 25px; margin-bottom: 10px;">
+          <h4>Branding Assets Customization</h4>
+        </div>
+
+        <div class="glass-panel" style="padding: 20px;">
+          <form id="admin-customize-form" enctype="multipart/form-data">
+            <p style="font-size: 0.82rem; color: var(--text-secondary); margin-bottom: 20px;">
+              Upload custom images to brand the certificates. Acceptable file type: <strong>PNG/JPG</strong>. Large file
+              sizes are optimized automatically.
+            </p>
+
+            <div class="input-group">
+              <label for="upload-logo">1. School / Academy Logo (Replaces default top logo slot)</label>
+              <div style="display:flex; align-items:center; gap:10px;">
+                <input type="file" id="upload-logo" name="logo" accept="image/png, image/jpeg, image/jpg"
+                  style="flex:1;">
+                <button type="button" class="btn btn-danger btn-sm" onclick="resetCertAsset('logo')"
+                  style="padding: 8px 12px; background: #ef4444; border: none; border-radius: 4px; color: #fff; cursor: pointer;"><i
+                    class="fa-solid fa-rotate-left"></i> Reset</button>
+              </div>
+            </div>
+
+            <div class="input-group">
+              <label for="upload-border">2. Custom Certificate Border / Frame (Replaces solid gold border)</label>
+              <div style="display:flex; align-items:center; gap:10px;">
+                <input type="file" id="upload-border" name="border" accept="image/png, image/jpeg, image/jpg"
+                  style="flex:1;">
+                <button type="button" class="btn btn-danger btn-sm" onclick="resetCertAsset('border')"
+                  style="padding: 8px 12px; background: #ef4444; border: none; border-radius: 4px; color: #fff; cursor: pointer;"><i
+                    class="fa-solid fa-rotate-left"></i> Reset</button>
+              </div>
+            </div>
+
+            <div class="input-group">
+              <label for="upload-signature">3. Official Signature Image (Placed in signature section)</label>
+              <div style="display:flex; align-items:center; gap:10px;">
+                <input type="file" id="upload-signature" name="signature" accept="image/png, image/jpeg, image/jpg"
+                  style="flex:1;">
+                <button type="button" class="btn btn-danger btn-sm" onclick="resetCertAsset('signature')"
+                  style="padding: 8px 12px; background: #ef4444; border: none; border-radius: 4px; color: #fff; cursor: pointer;"><i
+                    class="fa-solid fa-rotate-left"></i> Reset</button>
+              </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-block"
+              style="background: var(--primary-gradient); box-shadow: var(--glow-primary); margin-top: 15px; border: none;">
+              <i class="fa-solid fa-cloud-arrow-up"></i> Upload Custom Assets
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <div class="admin-footer">
+        <button id="btn-admin-back-to-dashboard" class="btn btn-secondary btn-block">
+          <i class="fa-solid fa-circle-arrow-left"></i> Go to Student View
+        </button>
+      </div>
+    </div>
+
+    <!-- 8. QUESTION EDIT/ADD MODAL (OVERLAY) -->
+    <div id="modal-question-editor" class="modal-overlay hidden">
+      <div class="modal-card glass-panel">
+        <div class="modal-header">
+          <h3 id="modal-editor-title">Add QCM Question</h3>
+          <button id="btn-close-editor-modal" class="btn-close"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <form id="question-editor-form">
+          <input type="hidden" id="edit-question-id">
+
+          <div class="input-group">
+            <label for="edit-question-tense">Select TenseCategory</label>
+            <select id="edit-question-tense" required>
+              <!-- 12 Tenses -->
+              <option value="Simple Present">Simple Present</option>
+              <option value="Present Continuous">Present Continuous</option>
+              <option value="Present Perfect">Present Perfect</option>
+              <option value="Present Perfect Continuous">Present Perfect Continuous</option>
+              <option value="Simple Past">Simple Past</option>
+              <option value="Past Continuous">Past Continuous</option>
+              <option value="Past Perfect">Past Perfect</option>
+              <option value="Past Perfect Continuous">Past Perfect Continuous</option>
+              <option value="Simple Future">Simple Future</option>
+              <option value="Future Continuous">Future Continuous</option>
+              <option value="Future Perfect">Future Perfect</option>
+              <option value="Future Perfect Continuous">Future Perfect Continuous</option>
+            </select>
+          </div>
+
+          <div class="input-group">
+            <label for="edit-question-text">Question Prompt (Use ___ for blank)</label>
+            <textarea id="edit-question-text" rows="3" placeholder="e.g. He ___ to the gym yesterday."
+              required></textarea>
+          </div>
+
+          <div class="options-inputs-grid">
+            <div class="input-group">
+              <label for="edit-option-0">Option A</label>
+              <input type="text" id="edit-option-0" placeholder="Option A" required>
+            </div>
+            <div class="input-group">
+              <label for="edit-option-1">Option B</label>
+              <input type="text" id="edit-option-1" placeholder="Option B" required>
+            </div>
+            <div class="input-group">
+              <label for="edit-option-2">Option C</label>
+              <input type="text" id="edit-option-2" placeholder="Option C" required>
+            </div>
+            <div class="input-group">
+              <label for="edit-option-3">Option D</label>
+              <input type="text" id="edit-option-3" placeholder="Option D" required>
+            </div>
+          </div>
+
+          <div class="input-group">
+            <label for="edit-correct-idx">Correct Option</label>
+            <select id="edit-correct-idx" required>
+              <option value="0">Option A</option>
+              <option value="1">Option B</option>
+              <option value="2">Option C</option>
+              <option value="3">Option D</option>
+            </select>
+          </div>
+
+          <div class="modal-footer-actions">
+            <button type="button" id="btn-cancel-editor-modal" class="btn btn-secondary">Cancel</button>
+            <button type="submit" class="btn btn-primary">Save Question</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+
+
+    <!-- MOBILE IMAGE SAVE DIALOG (OVERLAY) -->
+    <div id="modal-image-preview" class="modal-overlay hidden">
+      <div class="modal-card glass-panel" style="max-width: 90%; text-align: center; padding: 20px;">
+        <div class="modal-header" style="margin-bottom: 12px;">
+          <h3>Mobile Save Options</h3>
+          <button id="btn-close-preview-modal" class="btn-close"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 16px;">
+          <i class="fa-solid fa-mobile-screen-button"></i> <strong>Mobile Instructions:</strong><br>
+          Tap and hold (long-press) the certificate image below, then select <strong>"Save Image"</strong> or
+          <strong>"Share"</strong>.
+        </p>
+        <div class="preview-img-container"
+          style="background: #fff; padding: 5px; border-radius: 4px; overflow: hidden; margin-bottom: 16px; box-shadow: var(--shadow-md);">
+          <img id="cert-preview-img" src="" alt="Certificate Preview"
+            style="width: 100%; height: auto; display: block; border: 1px solid #ddd;">
+        </div>
+        <button id="btn-save-localstorage-preview" class="btn btn-secondary btn-block">
+          <i class="fa-solid fa-hdd"></i> Save to Local Storage
+        </button>
+      </div>
+    </div>
+
+    <!-- Main App Footer -->
+    <div class="app-footer no-print">
+      <p class="copyright-text">Copyright by: Mr. Neang Ny</p>
+    </div>
+
+  </div>
+
+  <!-- Custom Scripts -->
+  <script src="app.js"></script>
+</body>
+
+</html>
