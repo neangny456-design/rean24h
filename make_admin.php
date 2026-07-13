@@ -1,2 +1,0 @@
-<?php
-// Promotion completed successfully.
